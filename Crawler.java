@@ -12,12 +12,13 @@ import org.jsoup.select.Elements;
 public class Crawler
 {
 	Connection connection;
-	int urlID;
+	int urlID,wordid;
     int nextURLIDScanned, nextURLID,myURLID;
 	public Properties props;
 
 	Crawler() {
 		urlID = 0;
+        wordid=0;
 	}
 
 	public void readProperties() throws IOException {
@@ -71,14 +72,23 @@ public class Crawler
 
 	public void insertURLInDB( String url) throws SQLException, IOException {
         Document doc= Jsoup.connect(url).get();
-        String description=doc.text().substring(0,100);
-        
+        String description=doc.text().substring(0,10);
+        insertWordInDB(description,urlID);
         Statement stat = connection.createStatement();
 		String query = "INSERT INTO urls VALUES ('"+urlID+"','"+url+"','"+description+"')";
 		
 		stat.executeUpdate( query );
 		urlID++;
 	}
+    
+    public void insertWordInDB( String word, int wordid) throws SQLException, IOException {
+        Statement stat = connection.createStatement();
+        String query = "INSERT INTO words VALUES ('"+word+"',"+wordid+")";
+        
+        stat.executeUpdate( query );
+        wordid++;
+    }
+    
 
 /*
 	public String makeAbsoluteURL(String url, String parentURL) {
@@ -191,7 +201,7 @@ public class Crawler
     {
         Statement stat = connection.createStatement();
         try{
-        Document doc= Jsoup.connect(url).get();
+            Document doc= Jsoup.connect(url).get();
             Elements links=doc.select("a[href]");
             //String description=doc.select("meta[name=desciption]").get(0).attr("content");
             
@@ -208,6 +218,12 @@ public class Crawler
             }
     
     
+    public void insertWordTable()
+    {
+       
+     
+    
+    }
     
     public void crawl(){
         while(nextURLIDScanned< nextURLID){
