@@ -70,9 +70,12 @@ public class Crawler
 	}
 
 	public void insertURLInDB( String url) throws SQLException, IOException {
-         	Statement stat = connection.createStatement();
-		String query = "INSERT INTO urls VALUES ('"+urlID+"','"+url+"','')";
-		//System.out.println("Executing "+query);
+        Document doc= Jsoup.connect(url).get();
+        String description=doc.text().substring(0,100);
+        
+        Statement stat = connection.createStatement();
+		String query = "INSERT INTO urls VALUES ('"+urlID+"','"+url+"','"+description+"')";
+		
 		stat.executeUpdate( query );
 		urlID++;
 	}
@@ -162,36 +165,47 @@ public class Crawler
         nextURLIDScanned=0;
         myURLID=0;
         
-        while(myURLID<10000)
+        while(urlID<10000)
         {
             
             
             getUrlList(root);
-            root=
-            myURLID++;
-        }
-        
-        Statement stat = connection.createStatement();
-        Document doc= Jsoup.connect(root).get();
-        Elements links=doc.select("a[href]");
-        //String description=doc.select("meta[name=desciption]").get(0).attr("content");
-        //description=description.substring(0,100);
-        
-        for(Element link : links )
-        {
-            String a=link.attr("href");
-            //String a=doc.text();
-            //a=a.substring(0,100);
-            insertURLInDB(a);
-            nextURLID++;
+            //System.out.println("im so good");
+            try {
+                Statement stat = connection.createStatement();
+                ResultSet result = stat.executeQuery( "SELECT * FROM urls WHERE urlid = " + myURLID + ";");
+                if(result.next())
+                {
+                    String theURL=result.getString("url");
+                    root=theURL;
+                    myURLID++;
+                    //System.out.println("the root is now: " + theURL);
+                }
+            }catch(Exception e){}
+            
         }
     
     }
     
-    public void getUrlList(String url)
+    public void getUrlList(String url) throws SQLException, IOException
     {
-        
-    }
+        Statement stat = connection.createStatement();
+        try{
+        Document doc= Jsoup.connect(url).get();
+            Elements links=doc.select("a[href]");
+            //String description=doc.select("meta[name=desciption]").get(0).attr("content");
+            
+            for(Element link : links )
+            {
+                String a=link.attr("href");
+                System.out.println(link.text());
+                if(a.matches("^(https?|ftp)://.*$"))
+                    insertURLInDB(a);
+            }
+
+        }catch (Exception e)
+        { e.printStackTrace(); }
+            }
     
     
     
