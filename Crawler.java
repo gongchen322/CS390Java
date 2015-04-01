@@ -3,11 +3,17 @@ import java.net.*;
 import java.util.regex.*;
 import java.sql.*;
 import java.util.*;
+import java.io.IOException;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 public class Crawler
 {
 	Connection connection;
 	int urlID;
+    int nextURLIDScanned, nextURLID,myURLID;
 	public Properties props;
 
 	Crawler() {
@@ -41,12 +47,14 @@ public class Crawler
 		// Delete the table first if any
 		try {
 			stat.executeUpdate("DROP TABLE URLS");
+            stat.executeUpdate(" DROP TABLE WORDS");
 		}
 		catch (Exception e) {
 		}
 			
 		// Create the table
         	stat.executeUpdate("CREATE TABLE URLS (urlid INT, url VARCHAR(512), description VARCHAR(200))");
+            stat.executeUpdate("CREATE TABLE WORDS (word VARCHAR(200), urlid INT)");
 	}
 
 	public boolean urlInDB(String urlFound) throws SQLException, IOException {
@@ -103,6 +111,7 @@ public class Crawler
 	}
 */
 
+    
    	public void fetchURL(String urlScanned) {
 		try {
 			URL url = new URL(urlScanned);
@@ -148,6 +157,53 @@ public class Crawler
       		}
 	}
 
+    public void startCrawl(String root) throws SQLException, IOException{
+        nextURLID=0;
+        nextURLIDScanned=0;
+        myURLID=0;
+        
+        while(myURLID<10000)
+        {
+            
+            
+            getUrlList(root);
+            root=
+            myURLID++;
+        }
+        
+        Statement stat = connection.createStatement();
+        Document doc= Jsoup.connect(root).get();
+        Elements links=doc.select("a[href]");
+        //String description=doc.select("meta[name=desciption]").get(0).attr("content");
+        //description=description.substring(0,100);
+        
+        for(Element link : links )
+        {
+            String a=link.attr("href");
+            //String a=doc.text();
+            //a=a.substring(0,100);
+            insertURLInDB(a);
+            nextURLID++;
+        }
+    
+    }
+    
+    public void getUrlList(String url)
+    {
+        
+    }
+    
+    
+    
+    public void crawl(){
+        while(nextURLIDScanned< nextURLID){
+            int urlIndex=nextURLIDScanned;
+            
+        }
+        
+        
+    }
+    
    	public static void main(String[] args)
    	{
 		Crawler crawler = new Crawler();
@@ -156,7 +212,8 @@ public class Crawler
 			crawler.readProperties();
 			String root = crawler.props.getProperty("crawler.root");
 			crawler.createDB();
-			crawler.fetchURL(root);
+			crawler.startCrawl(root);
+            //crawler.fetchURL(root);
 		}
 		catch( Exception e) {
          		e.printStackTrace();
