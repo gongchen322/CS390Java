@@ -18,7 +18,7 @@
 <div class="wrapper">
 <img src="http://www.marotura.com/wp-content/uploads/2014/02/search_google_2.png" alt="Mountain View" width=500 height:500 >
   </div>
-<form action="result.php" method="POST">
+<form action="result.jsp" method="POST">
 <div class="wrapper">
 <input type="text" id="texts" name="customsearch" value="">
  </div>
