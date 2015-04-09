@@ -12,11 +12,11 @@ import org.jsoup.select.Elements;
 public class Crawler
 {
 	Connection connection;
-	int urlID,wordid;
+	static int  urlID,wordid;
     int nextURLIDScanned, nextURLID,myURLID;
 	public Properties props;
     //static HashMap<String, Integer> map;
-
+    static HashSet set2;
 	Crawler() {
 		urlID = 0;
         wordid=0;
@@ -74,7 +74,7 @@ public class Crawler
 	public void insertURLInDB( String url) throws SQLException, IOException {
         Document doc= Jsoup.connect(url).get();
         String urlText=doc.text();
-        String imgLink=" ";
+        String imgLink=null;
 	String description=urlText.substring(0,100);
 	      Elements images = doc.select("img[src~=(?i)\\.(png|jpe?g|gif)]");
         
@@ -87,6 +87,10 @@ public class Crawler
              }
              
          }
+        if(imgLink==null)
+        {
+            imgLink="https://www.cs.purdue.edu/images/brand.svg";
+        }
         
         Statement stat = connection.createStatement();
 		String query = "INSERT INTO urls VALUES ('"+urlID+"','"+url+"','"+description+"','"+imgLink+"')";
@@ -122,6 +126,7 @@ public class Crawler
                     String query = "INSERT INTO words VALUES ('"+word.toLowerCase()+"',"+wordid+")";
                     stat.executeUpdate( query );
                 }catch(Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -213,11 +218,11 @@ public class Crawler
         nextURLIDScanned=0;
         myURLID=0;
         
-        while(myURLID<100)
+        while(urlID<10000)
         {
             
             //System.out.println("get links for"+ root);
-            getUrlList(root);
+                getUrlList(root);
             //System.out.println("im so good");
             try {
                 Statement stat = connection.createStatement();
@@ -238,7 +243,7 @@ public class Crawler
     public void getUrlList(String url) throws SQLException, IOException
     {
         Statement stat = connection.createStatement();
-        HashSet set=new HashSet<String>();
+       
         try{
             Document doc= Jsoup.connect(url).get();
             Elements links=doc.select("a[href]");
@@ -246,13 +251,13 @@ public class Crawler
             int count=0;
             for(Element link : links )
             {
-                String a=link.attr("href");
+                String a=link.attr("abs:href");
                 //System.out.println(link.text());
-                if(a.matches("^(http|https)://.*$"))
+                //if(a.matches("^(http|https)://.*$"))
                 //if(a.startsWith("https://www.cs.purdue.edu")|| a.startsWith("http://www.cs.purdue.edu"))
+                if(a.contains("cs.purdue.edu"))
                 {
-                    if(set.add(a))
-                    {
+                    if(set2.add(a)){
                         insertURLInDB(a);
                     }
                }
@@ -272,7 +277,7 @@ public class Crawler
         try {
             //while(result.isLast())
 
-            while(i<100){
+            while(i<10000){
                 Statement stat = connection.createStatement();
                 ResultSet result = stat.executeQuery( "SELECT * FROM urls WHERE urlid = " + i + ";");
                 System.out.println("Quesry runned "+ i+ " times");
@@ -332,6 +337,8 @@ public class Crawler
         System.out.println(word);*/
         //set=new HashSet<String>();
        // map=new HashMap<String, Integer>();
+        set2=new HashSet<String>();
+        long start = System.currentTimeMillis();
 		try {
 			crawler.readProperties();
 			String root = crawler.props.getProperty("crawler.root");
@@ -343,6 +350,9 @@ public class Crawler
 		catch( Exception e) {
          		e.printStackTrace();
 		}
-    	}
+        
+        long end = System.currentTimeMillis();
+        System.out.println(" Total time runned:" + (end-start)/1000 + "seconds");
+    }
 }
 
