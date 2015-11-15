@@ -75,23 +75,20 @@ public class Crawler
         Document doc= Jsoup.connect(url).get();
         String urlText=doc.text();
         String imgLink=null;
-	String description=urlText.substring(0,100);
-	      Elements images = doc.select("img[src~=(?i)\\.(png|jpe?g|gif)]");
-        
-         for (Element image : images) {
-             if(!image.attr("abs:src").equals("https://www.cs.purdue.edu/images/brand.svg")
-                && !image.attr("abs:src").equals("https://www.cs.purdue.edu/images/logo.svg"))
+	    String description=urlText.substring(0,100);
+	    Elements images = doc.select("img[src~=(?i)\\.(png|jpe?g|gif)]");
+        for (Element image : images) {
+            if(!image.attr("abs:src").equals("https://www.cs.purdue.edu/images/brand.svg")
+               && !image.attr("abs:src").equals("https://www.cs.purdue.edu/images/logo.svg"))
              {
                  imgLink=image.attr("abs:src");
                  break;
-             }
-             
-         }
+             }    
+        }
         if(imgLink==null)
         {
             imgLink="https://www.cs.purdue.edu/images/brand.svg";
         }
-        
         Statement stat = connection.createStatement();
 		String query = "INSERT INTO urls VALUES ('"+urlID+"','"+url+"','"+description+"','"+imgLink+"')";
         System.out.println(urlID+ "Rows has been inserted");
@@ -132,77 +129,35 @@ public class Crawler
         }
     }
     
-
-/*
-	public String makeAbsoluteURL(String url, String parentURL) {
-		if (url.indexOf(":")<0) {
-			// the protocol part is already there.
-			return url;
-		}
-
-		if (url.length > 0 && url.charAt(0) == '/') {
-			// It starts with '/'. Add only host part.
-			int posHost = url.indexOf("://");
-			if (posHost <0) {
-				return url;
-			}
-			int posAfterHist = url.indexOf("/", posHost+3);
-			if (posAfterHist < 0) {
-				posAfterHist = url.Length();
-			}
-			String hostPart = url.substring(0, posAfterHost);
-			return hostPart + "/" + url;
-		} 
-
-		// URL start with a char different than "/"
-		int pos = parentURL.lastIndexOf("/");
-		int posHost = parentURL.indexOf("://");
-		if (posHost <0) {
-			return url;
-		}
-		
-		
-		
-
-	}
-*/
-
-    
    	public void fetchURL(String urlScanned) {
 		try {
 			URL url = new URL(urlScanned);
 			System.out.println("urlscanned="+urlScanned+" url.path="+url.getPath());
- 
-    			// open reader for URL
-    			InputStreamReader in = 
-       				new InputStreamReader(url.openStream());
-
-    			// read contents into string builder
-    			StringBuilder input = new StringBuilder();
-    			int ch;
+    		// open reader for URL
+    		InputStreamReader in = new InputStreamReader(url.openStream());
+    		// read contents into string builder
+    		StringBuilder input = new StringBuilder();
+    		int ch;
 			while ((ch = in.read()) != -1) {
          			input.append((char) ch);
 			}
-
-     			// search for all occurrences of pattern
-    			String patternString =  "<a\\s+href\\s*=\\s*(\"[^\"]*\"|[^\\s>]*)\\s*>";
-    			Pattern pattern = 			
-	     			Pattern.compile(patternString, 
-	     			Pattern.CASE_INSENSITIVE);
-    			Matcher matcher = pattern.matcher(input);
+     		// search for all occurrences of pattern
+    		String patternString =  "<a\\s+href\\s*=\\s*(\"[^\"]*\"|[^\\s>]*)\\s*>";
+    		Pattern pattern = 			
+	           Pattern.compile(patternString, 
+	           Pattern.CASE_INSENSITIVE);
+    	       Matcher matcher = pattern.matcher(input);
 		
 			while (matcher.find()) {
-    				int start = matcher.start();
-    				int end = matcher.end();
-    				String match = input.substring(start, end);
+    			int start = matcher.start();
+    			int end = matcher.end();
+    			String match = input.substring(start, end);
 				String urlFound = matcher.group(1);
 				System.out.println(urlFound);
-
 				// Check if it is already in the database
 				if (!urlInDB(urlFound)) {
 					insertURLInDB(urlFound);
 				}				
-	
     				//System.out.println(match);
  			}
 
@@ -219,25 +174,22 @@ public class Crawler
         myURLID=0;
         
         while(urlID<10000)
-        {
-            
+        { 
             //System.out.println("get links for"+ root);
-                getUrlList(root);
+            getUrlList(root);
             //System.out.println("im so good");
             try {
-                Statement stat = connection.createStatement();
-                ResultSet result = stat.executeQuery( "SELECT * FROM urls WHERE urlid = " + myURLID + ";");
-                if(result.next())
-                {
-                    String theURL=result.getString("url");
-                    root=theURL;
-                    myURLID++;
-                    //System.out.println("the root is now: " + theURL);
-                }
-            }catch(Exception e){}
-            
+                    Statement stat = connection.createStatement();
+                    ResultSet result = stat.executeQuery( "SELECT * FROM urls WHERE urlid = " + myURLID + ";");
+                    if(result.next())
+                    {
+                        String theURL=result.getString("url");
+                        root=theURL;
+                        myURLID++;
+                        //System.out.println("the root is now: " + theURL);
+                    }
+            }catch(Exception e){} 
         }
-    
     }
     
     public void getUrlList(String url) throws SQLException, IOException
@@ -264,8 +216,7 @@ public class Crawler
             }
            
 
-        }catch (Exception e)
-        {
+        }catch (Exception e){
             //e.printStackTrace();
         }
     }
@@ -275,8 +226,6 @@ public class Crawler
         String url=null;
         int i=0;
         try {
-            //while(result.isLast())
-
             while(i<10000){
                 Statement stat = connection.createStatement();
                 ResultSet result = stat.executeQuery( "SELECT * FROM urls WHERE urlid = " + i + ";");
@@ -290,7 +239,6 @@ public class Crawler
                 Document doc= Jsoup.connect(url).get();
                 String urlText=doc.text();
                 insertWordInDB(urlText,i);
-                
                 i++;
             }
             
@@ -307,36 +255,13 @@ public class Crawler
     
     public void crawl(){
         while(nextURLIDScanned< nextURLID){
-            int urlIndex=nextURLIDScanned;
-            
-        }
-        
-        
+            int urlIndex=nextURLIDScanned;  
+        }    
     }
     
    	public static void main(String[] args)
    	{
 		Crawler crawler = new Crawler();
-        //String a="abc.";
-       //String b=a.substring(0,a.length()-1);
-        //System.out.println(b);
-       /* String word="ab...";
-        char tem[]={'a','b','.','.','.'};
-        int k=0;
-        if(tem.length>=1 && !Character.isLetterOrDigit(tem[tem.length-1])){
-            for(int j=tem.length-1;j>=0;j--)
-            {
-                System.out.println(tem[j]);
-                if(!Character.isLetterOrDigit(tem[j]))
-                {
-                    k++;
-                }
-            }
-            word=word.substring(0,word.length()-k);
-        }
-        System.out.println(word);*/
-        //set=new HashSet<String>();
-       // map=new HashMap<String, Integer>();
         set2=new HashSet<String>();
         long start = System.currentTimeMillis();
 		try {
@@ -345,7 +270,6 @@ public class Crawler
 			crawler.createDB();
 			crawler.startCrawl(root);
             crawler.insertWordTable();
-            //crawler.fetchURL(root);
 		}
 		catch( Exception e) {
          		e.printStackTrace();
